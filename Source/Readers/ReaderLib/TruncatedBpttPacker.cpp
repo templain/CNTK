@@ -28,6 +28,14 @@ public:
         return m_sequences.empty();
     }
 
+    void Reset() 
+    {
+        m_length = 0;
+        m_sampleCursor = 0;
+        m_sampleOffset = 0;
+        m_sequences.clear();
+    }
+
     // Gets the number of available samples in the slot.
     size_t AvailableNumberOfSamples() const
     {
@@ -136,6 +144,17 @@ TruncatedBPTTPacker::TruncatedBPTTPacker(
     }
 }
 
+void TruncatedBPTTPacker::Reset() 
+{
+    for (auto& buffer : m_sequenceBufferPerStream) 
+    {
+        for (auto& slot : buffer->m_slots) 
+        {
+            slot.Reset();
+        }
+    }
+}
+
 void TruncatedBPTTPacker::SetConfiguration(const ReaderConfiguration& config, const std::vector<MemoryProviderPtr>& memoryProviders)
 {
     auto oldMinibatchSize = m_config.m_minibatchSizeInSamples;
@@ -173,8 +192,6 @@ void TruncatedBPTTPacker::SetConfiguration(const ReaderConfiguration& config, co
                 m_sequenceBufferPerStream.push_back(make_shared<SequenceBuffer>(m_numParallelSequences));
             }
     }
-
-    FillOutAvailableSlots();
 }
 
 Minibatch TruncatedBPTTPacker::ReadMinibatch()

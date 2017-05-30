@@ -62,6 +62,8 @@ public:
 
     void StartEpoch(const EpochConfiguration& epoch, const std::unordered_set<InputStreamDescription>& inputs);
 
+    void StartAsyncPrefetching();
+
     virtual void StartMinibatchLoop(size_t, size_t, size_t) override
     {
         LogicError("Legacy StartMinibatchLoop is not implemented.");

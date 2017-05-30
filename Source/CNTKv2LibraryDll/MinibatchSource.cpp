@@ -287,8 +287,6 @@ namespace CNTK
     /*virtual*/ void CompositeMinibatchSource::RestoreFromCheckpoint(const Dictionary& checkpoint) /*override*/
     {
         auto checkpointedMinibatchSourcePosition = checkpoint[PositionAttributeName].Value<size_t>();
-        m_shim->SetCurrentSamplePosition(checkpointedMinibatchSourcePosition);
-
         // Need to reinitialize, we also have to remember the current position because StartEpoch
         // effectively resets it.
         // TODO: Remove call to StartEpoch - this API is legacy.
