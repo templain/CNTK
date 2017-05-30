@@ -22,7 +22,12 @@ sys.path.append(example_dir)
 TOLERANCE_ABSOLUTE = 2E-1
 TIMEOUT_SECONDS = 300
 
-def mpiexec_execute(script, mpiexec_params, params, timeout_seconds=TIMEOUT_SECONDS):
+def mpiexec_execute(script, mpiexec_params, params, timeout_seconds=TIMEOUT_SECONDS, device_id=None):
+    if device_id is not None:
+        device_is_cpu = (cntk_device(device_id).type() != DeviceKind_GPU)
+        if use_only_cpu != device_is_cpu:
+            pytest.skip('test only runs on ' + ('CPU' if use_only_cpu else 'GPU'))
+
     cmd = ["mpiexec"] + mpiexec_params + ["python", script] + params
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
     if sys.version_info[0] < 3:
