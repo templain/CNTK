@@ -40,8 +40,8 @@ namespace CNTK
 
         virtual void Update(const Parameter& parameter, const NDArrayViewPtr& gradientValue, const NDArrayViewPtr& smoothedGradientValue, size_t trainingSampleCount) const = 0;
 
-		// Allows derived class may override this to perform per-minibatch update actions
-		virtual void UpdateOnMinibatch(size_t /*trainingSampleCount*/) {}
+        // Allows derived class may override this to perform per-minibatch update actions
+        virtual void UpdateOnMinibatch(size_t /*trainingSampleCount*/) {}
 
         std::string LearnerType() const;
 
@@ -247,23 +247,23 @@ namespace CNTK
                          const MomentumSchedule& varianceMomentumSchedule,
                          AdditionalLearningOptions additionalOptions);
 
-		virtual Dictionary CreateCheckpoint() override;
+        virtual Dictionary CreateCheckpoint() override;
 
-		virtual void RestoreFromCheckpoint(const Dictionary& checkpoint) override;
+        virtual void RestoreFromCheckpoint(const Dictionary& checkpoint) override;
 
-		virtual void ResetSmoothedGradients() override;
+        virtual void ResetSmoothedGradients() override;
 
     protected:
 
         virtual void Update(const Parameter& parameter, const NDArrayViewPtr& gradientValue, const NDArrayViewPtr& smoothedGradientValue, size_t trainingSampleCount) const override;
-		virtual void UpdateOnMinibatch(size_t trainingSampleCount) override;
+        virtual void UpdateOnMinibatch(size_t trainingSampleCount) override;
 
         template <typename ElementType>
         void Update(const Parameter& parameter, const NDArrayViewPtr& gradientValue, const NDArrayViewPtr& smoothedGradientValue, size_t trainingSampleCount) const;
 
     private:
         static const double s_targetAdagradAvDenom;
-		double m_targetAdagradAvDenom_x_sqrtAdagradSqrFrames;
+        double m_targetAdagradAvDenom_x_sqrtAdagradSqrFrames;
 
         // returns current per-minibatch variance momentum value.
         double VarianceMomentumValueForMB(size_t minibatchSize) const
@@ -288,16 +288,16 @@ namespace CNTK
             bool adamax,
             AdditionalLearningOptions additionalOptions);
 
-		virtual Dictionary CreateCheckpoint() override;
+        virtual Dictionary CreateCheckpoint() override;
 
-		virtual void RestoreFromCheckpoint(const Dictionary& checkpoint) override;
+        virtual void RestoreFromCheckpoint(const Dictionary& checkpoint) override;
 
-		virtual void ResetSmoothedGradients() override;
+        virtual void ResetSmoothedGradients() override;
 
     protected:
 
         virtual void Update(const Parameter& parameter, const NDArrayViewPtr& gradientValue, const NDArrayViewPtr& smoothedGradientValue, size_t trainingSampleCount) const override;
-		virtual void UpdateOnMinibatch(size_t trainingSampleCount) override;
+        virtual void UpdateOnMinibatch(size_t trainingSampleCount) override;
 
         template <typename ElementType>
         void Update(const Parameter& parameter, const NDArrayViewPtr& gradientValue, const NDArrayViewPtr& smoothedGradientValue, size_t trainingSampleCount) const;
@@ -326,11 +326,11 @@ namespace CNTK
                        bool needAveMultiplier,
                        AdditionalLearningOptions additionalOptions);
 
-		virtual Dictionary CreateCheckpoint() override;
+        virtual Dictionary CreateCheckpoint() override;
 
-		virtual void RestoreFromCheckpoint(const Dictionary& checkpoint) override;
+        virtual void RestoreFromCheckpoint(const Dictionary& checkpoint) override;
 
-		virtual void ResetSmoothedGradients() override;
+        virtual void ResetSmoothedGradients() override;
 
     protected:
 
@@ -340,10 +340,10 @@ namespace CNTK
         double m_max;
         double m_min;
         bool m_needAveMultiplier;
-		double m_smoothedCount;
+        double m_smoothedCount;
 
         virtual void Update(const Parameter& parameter, const NDArrayViewPtr& gradientValue, const NDArrayViewPtr& smoothedGradientValue, size_t trainingSampleCount) const override;
-		virtual void UpdateOnMinibatch(size_t trainingSampleCount) override;
+        virtual void UpdateOnMinibatch(size_t trainingSampleCount) override;
 
         template <typename ElementType>
         void Update(const Parameter& parameter, const NDArrayViewPtr& gradientValue, const NDArrayViewPtr& smoothedGradientValue, size_t trainingSampleCount) const;

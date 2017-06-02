@@ -1364,7 +1364,7 @@ ElemType CPUMatrix<ElemType>::RmsProp(CPUMatrix<ElemType>& gradients,
                                       ElemType RMS_WGT_DEC,
                                       ElemType RMS_WGT_MIN,
                                       const bool needAveMultiplier,
-									  const bool initialized)
+                                      const bool initialized)
 {
     const ElemType floor = 1e-6f;
 
