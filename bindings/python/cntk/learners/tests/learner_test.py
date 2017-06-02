@@ -313,7 +313,6 @@ def test_learner_empy_parameters_list():
 
 
 def ffnet(learner, trainer=None):
-    C.try_set_default_device(C.cpu())
     inputs = 4
     outputs = 3
     layers = 2
