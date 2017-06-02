@@ -114,7 +114,7 @@ def test_learner_init():
     C.fsadagrad(res.parameters, lr_per_sample, momentum_time_constant, unit_gain_value)
     C.fsadagrad(res.parameters, lr=lr_per_sample, momentum=momentum_time_constant, unit_gain=unit_gain_value)
 
-    gamma, inc, dec, max, min = [0.1]*5
+    gamma, inc, dec, max, min = [0.5, 1.2, 0.7, 10, 1e-8]
     lr_per_sample = learning_rate_schedule([0.1, 0.2], UnitType.sample, 100)
     C.rmsprop(res.parameters, lr_per_sample, gamma, inc, dec, max, min, True)
 
