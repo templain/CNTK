@@ -29,6 +29,16 @@ MOMENTUM_SCHEDULE_PARAMS = [
         (([0.2,0.4], 5), [0.2]*5+[0.4]*20),
         (([(3,0.2),(2,0.4),(1,0.8)], 5), [0.2]*15+[0.4]*10+[0.8]*20),
         ]
+        
+LEARNER_LAMBDAS = [
+    lambda params: C.adadelta(params),
+    lambda params: C.adagrad(params, lr=learning_rate_schedule(1, UnitType.minibatch)),
+    lambda params: C.adam(params, lr=learning_rate_schedule(1, UnitType.minibatch), momentum=C.momentum_schedule(0.9)),
+    lambda params: C.fsadagrad(params, lr=learning_rate_schedule(1, UnitType.minibatch), momentum=C.momentum_schedule(0.9)),
+    lambda params: C.nesterov(params, lr=learning_rate_schedule(1, UnitType.minibatch), momentum=C.momentum_schedule(0.9)),
+    lambda params: C.rmsprop(params, lr=learning_rate_schedule(1, UnitType.minibatch), gamma=0.1, inc=3.0, dec=0.1, max=np.inf, min=1e-8),
+    lambda params: C.sgd(params, lr=learning_rate_schedule(1, UnitType.minibatch)),
+    lambda params: C.momentum_sgd(params, lr=learning_rate_schedule(1, UnitType.minibatch), momentum=C.momentum_schedule(0.9))]
 
 @pytest.mark.parametrize("params, expectation", LR_SCHEDULE_PARAMS)
 def test_learning_rate_schedule(params, expectation):
@@ -303,12 +313,13 @@ def test_learner_empy_parameters_list():
 
 
 def ffnet(learner, trainer=None):
+    C.try_set_default_device(C.cpu())
     inputs = 4
     outputs = 3
     layers = 2
     hidden_dimension = 3
 
-    if not trainer:
+    if trainer is None:
         # input variables denoting the features and label data
         features = C.input_variable((inputs), np.float32)
         label = C.input_variable((outputs), np.float32)
@@ -328,7 +339,6 @@ def ffnet(learner, trainer=None):
     else:
         features = trainer.loss_function.arguments[0]
         label = trainer.loss_function.arguments[1]
-        np.random.seed(0) # make sure numpy generates the same random number when trainer specified
 
     # Get minibatches of training data and perform model training
     minibatch_size = 25
@@ -384,20 +394,29 @@ def test_0d_1d_parameter_set_value():
     w_1d.value = w_1d_grad.data
     assert np.array_equal(w_1d.value, [1., 1.])
 
-@pytest.mark.parametrize("learner", [lambda params: C.adadelta(params),
-                                     lambda params: C.adagrad(params, lr=learning_rate_schedule(1, UnitType.minibatch)),
-                                     lambda params: C.adam(params, lr=learning_rate_schedule(1, UnitType.minibatch), momentum=C.momentum_schedule(0.9)),
-                                     lambda params: C.fsadagrad(params, lr=learning_rate_schedule(1, UnitType.minibatch), momentum=C.momentum_schedule(0.9)),
-                                     lambda params: C.nesterov(params, lr=learning_rate_schedule(1, UnitType.minibatch), momentum=C.momentum_schedule(0.9)),
-                                     lambda params: C.rmsprop(params, lr=learning_rate_schedule(1, UnitType.minibatch), gamma=0.95, inc=1.2, dec=0.7, max=np.inf, min=1e-8),
-                                     lambda params: C.sgd(params, lr=learning_rate_schedule(1, UnitType.minibatch)),
-                                     lambda params: C.momentum_sgd(params, lr=learning_rate_schedule(1, UnitType.minibatch), momentum=C.momentum_schedule(0.9))])
+@pytest.mark.parametrize("learner", LEARNER_LAMBDAS)
 def test_restore_from_checkpoint(tmpdir, learner):
-    _, _, trainer = ffnet(learner)
+    np.random.seed(0)
+    last_avg_err1, avg_err1, trainer1 = ffnet(learner)
+    np.random.seed(0)
+    last_avg_err2, avg_err2, trainer2 = ffnet(learner)
+    
+    assert np.allclose(last_avg_err1, last_avg_err2)
+    assert np.allclose(avg_err1, avg_err2)
+
+    # create a checkpoint for trainer and continue training
     checkpoint_filename = str(tmpdir.join('checkpoint'))
-    trainer.save_checkpoint(checkpoint_filename)
-    last_avg_error, avg_error, _ = ffnet(learner, trainer)
-    trainer.restore_from_checkpoint(checkpoint_filename)
-    restored_last_avg_error, restored_avg_error, _ = ffnet(learner, trainer)
-    assert np.allclose(restored_last_avg_error, last_avg_error)
-    assert np.allclose(restored_avg_error, avg_error)
+    trainer2.save_checkpoint(checkpoint_filename)
+    np.random.seed(1)
+    last_avg_err1, avg_err1, _ = ffnet(None, trainer1)
+    np.random.seed(1)
+    last_avg_err2, avg_err2, _ = ffnet(None, trainer2)
+    assert np.allclose(last_avg_err1, last_avg_err2)
+    assert np.allclose(avg_err1, avg_err2)
+
+    # restore from the checkpoint, make sure results match the one without checkpointing
+    trainer2.restore_from_checkpoint(checkpoint_filename)
+    np.random.seed(1)
+    last_avg_err2, avg_err2, _ = ffnet(None, trainer2)
+    assert np.allclose(last_avg_err1, last_avg_err2)
+    assert np.allclose(avg_err1, avg_err2)

@@ -681,9 +681,10 @@ namespace CNTK
 
         const auto learningRate = LearningRate(trainingSampleCount);
         const auto momentum = MomentumValueForMB(trainingSampleCount);
+        const auto varMomentum = VarianceMomentumValueForMB(trainingSampleCount);
 
         smoothedGradientMatrix->FSAdagradUpdate(*gradientMatrix, *parameterMatrix, m_targetAdagradAvDenom_x_sqrtAdagradSqrFrames, learningRate,
-                                                momentum, UseUnitGainMomentum());
+                                                momentum, varMomentum, UseUnitGainMomentum());
     }
 
     LearnerAdam::LearnerAdam(const vector<Parameter>& parameters,
@@ -767,7 +768,19 @@ namespace CNTK
                                    : LearnerBase(parameters, learningRateSchedule, additionalOptions, /*allocateSmoothGradients*/ false),
                                    m_gamma(gamma), m_inc(inc), m_dec(dec), m_max(max), m_min(min), m_needAveMultiplier(needAveMultiplier)
     {
-        // RMSProp min cannot be zero
+        // validation of learner settings
+        if (gamma <= 0 || gamma >= 1)
+            LogicError("RMSProp gamma must be in range (0.0, 1.0)");
+
+        if (inc <= 1.0)
+            LogicError("RMSProp inc must be greater than 1");
+
+        if (dec <= 0 || dec >= 1)
+            LogicError("RMSProp dec must be in range (0.0, 1.0)");
+
+        if (max <= 0 || max <= min)
+            LogicError("RMSProp max must be greater than zero and greater than min");
+
         if (min <= 0)
             LogicError("RMSProp min must be greater than zero");
 
